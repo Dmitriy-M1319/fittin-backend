@@ -1,0 +1,160 @@
+definitions:
+  api.AddNewAnswerRequest:
+    properties:
+      answer:
+        $ref: '#/definitions/models.Answer'
+      uuid:
+        example: 123e4567-e89b-12d3-a456-426614174000
+        type: string
+    type: object
+  api.AttemptRequest:
+    properties:
+      uuid:
+        example: 123e4567-e89b-12d3-a456-426614174000
+        type: string
+    type: object
+  models.Answer:
+    properties:
+      answer_variant:
+        type: integer
+      question_number:
+        type: integer
+    type: object
+  models.Question:
+    properties:
+      number:
+        type: integer
+      text:
+        type: string
+    type: object
+  models.ScalingResult:
+    properties:
+      scale:
+        type: string
+      value:
+        type: integer
+    type: object
+  models.TestResult:
+    properties:
+      information:
+        type: string
+      scales:
+        items:
+          $ref: '#/definitions/models.ScalingResult'
+        type: array
+      uuid:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /answer:
+    post:
+      consumes:
+      - application/json
+      description: Сохраняет ответ на конкретный вопрос теста
+      parameters:
+      - description: Запрос с ответом
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api.AddNewAnswerRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Добавить ответ на вопрос
+      tags:
+      - attempt
+  /attempt:
+    post:
+      consumes:
+      - application/json
+      description: Создает новую запись для хранения ответов на тест
+      parameters:
+      - description: Запрос на создание попытки
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api.AttemptRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Создать новую попытку тестирования
+      tags:
+      - attempt
+  /calculate:
+    post:
+      consumes:
+      - application/json
+      description: Вычисляет результаты теста на основе предоставленных ответов
+      parameters:
+      - description: Запрос с UUID попытки
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api.AttemptRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.TestResult'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Рассчитать результаты теста
+      tags:
+      - results
+  /questions:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает список всех вопросов MMPI теста
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Question'
+            type: array
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Получить все вопросы теста
+      tags:
+      - questions
+swagger: "2.0"
