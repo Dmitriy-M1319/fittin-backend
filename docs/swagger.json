@@ -44,6 +44,46 @@
                 }
             }
         },
+        "/answer-all": {
+            "post": {
+                "description": "Создает все записи вопросов с одним определенным ответом",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "attempt"
+                ],
+                "summary": "Заполнить все вопросы одним ответом",
+                "parameters": [
+                    {
+                        "description": "Запрос на создание попытки",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api.SetAllAnswersRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/attempt": {
             "post": {
                 "description": "Создает новую запись для хранения ответов на тест",
@@ -188,6 +228,18 @@
         "api.AttemptRequest": {
             "type": "object",
             "properties": {
+                "uuid": {
+                    "type": "string",
+                    "example": "123e4567-e89b-12d3-a456-426614174000"
+                }
+            }
+        },
+        "api.SetAllAnswersRequest": {
+            "type": "object",
+            "properties": {
+                "answer": {
+                    "type": "integer"
+                },
                 "uuid": {
                     "type": "string",
                     "example": "123e4567-e89b-12d3-a456-426614174000"

@@ -13,6 +13,14 @@ definitions:
         example: 123e4567-e89b-12d3-a456-426614174000
         type: string
     type: object
+  api.SetAllAnswersRequest:
+    properties:
+      answer:
+        type: integer
+      uuid:
+        example: 123e4567-e89b-12d3-a456-426614174000
+        type: string
+    type: object
   models.Answer:
     properties:
       answer_variant:
@@ -72,6 +80,32 @@ paths:
               type: string
             type: object
       summary: Добавить ответ на вопрос
+      tags:
+      - attempt
+  /answer-all:
+    post:
+      consumes:
+      - application/json
+      description: Создает все записи вопросов с одним определенным ответом
+      parameters:
+      - description: Запрос на создание попытки
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api.SetAllAnswersRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Заполнить все вопросы одним ответом
       tags:
       - attempt
   /attempt:

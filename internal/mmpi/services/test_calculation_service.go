@@ -2,8 +2,8 @@ package services
 
 import (
 	"errors"
-	"fmt"
 
+	"github.com/Dmitriy-M1319/fittin-backend/internal/mmpi/llm"
 	"github.com/Dmitriy-M1319/fittin-backend/internal/mmpi/models"
 )
 
@@ -55,11 +55,28 @@ var clinicalScales = map[string]scale{
 	},
 }
 
-type TestCalculationService struct {
+var scaleCoefficients = map[string]struct {
+	K float64
+	B float64
+}{
+	"(Hs)": {K: 0.5, B: 30},
+	"(D)":  {K: 0.4, B: 40},
+	"(Hy)": {K: 0.6, B: 35},
+	"(Pd)": {K: 0.4, B: 40},
+	"(Mf)": {K: 0.5, B: 35},
+	"(Pa)": {K: 0.7, B: 30},
+	"(Pt)": {K: 0.3, B: 45},
+	"(Sc)": {K: 0.2, B: 50},
+	"(Ma)": {K: 0.6, B: 30},
+	"(Si)": {K: 0.5, B: 35},
 }
 
-func NewTestCalculationService() *TestCalculationService {
-	return &TestCalculationService{}
+type TestCalculationService struct {
+	client *llm.LLMClient
+}
+
+func NewTestCalculationService(client *llm.LLMClient) *TestCalculationService {
+	return &TestCalculationService{client: client}
 }
 
 func (s *TestCalculationService) Calculate(attempt *models.TestAttempt) (*models.TestResult, error) {
@@ -110,35 +127,34 @@ func (s *TestCalculationService) Calculate(attempt *models.TestAttempt) (*models
 	}
 
 	// Анализ общего профиля
-	result.Info = analyzeOverallProfile(result.Scales)
+	result.Info = s.analyzeOverallProfile(result.Scales)
 
 	return result, nil
 }
 
-// convertToTScore преобразует сырые баллы в T-баллы
+// convertToTScore преобразует сырые баллы в T-баллы с учетом специфики шкал
 func convertToTScore(scale string, rawScore int) int {
-	if rawScore < 20 {
-		return 30 + rawScore
+	coef, exists := scaleCoefficients[scale]
+	if !exists {
+		// По умолчанию, если шкала не найдена
+		return 50 + rawScore
 	}
-	return 50 + (rawScore - 20)
+
+	tScore := int(coef.K*float64(rawScore) + coef.B)
+	if tScore < 30 {
+		return 30
+	}
+	if tScore > 120 {
+		return 120
+	}
+	return tScore
 }
 
 // analyzeOverallProfile анализирует общий профиль личности
-func analyzeOverallProfile(scales []models.ScalingResult) string {
-	highScales := make([]string, 0)
-	for _, scale := range scales {
-		if scale.Value > 70 {
-			highScales = append(highScales, scale.Scale)
-		}
+func (s *TestCalculationService) analyzeOverallProfile(scales []models.ScalingResult) string {
+	res, err := s.client.PrepareTestResult(models.TestResult{Scales: scales})
+	if err != nil {
+		return "Не удалось получить интерпретацию от ИИ"
 	}
-
-	if len(highScales) > 3 {
-		return "Сложный профиль с множеством повышенных показателей. Требуется дополнительный анализ."
-	}
-
-	if len(highScales) == 0 {
-		return "Гармоничный профиль без выраженных пиков"
-	}
-
-	return fmt.Sprintf("Профиль с повышенными показателями по шкалам: %v", highScales)
+	return res
 }

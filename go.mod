@@ -2,12 +2,12 @@ module github.com/Dmitriy-M1319/fittin-backend
 
 go 1.23.0
 
-require github.com/mattn/go-sqlite3 v1.14.28
-
 require (
-	github.com/gage-technologies/mistral-go v1.1.0 // indirect
-	github.com/swaggo/files/v2 v2.0.2 // indirect
+	github.com/gage-technologies/mistral-go v1.1.0
+	github.com/mattn/go-sqlite3 v1.14.28
 )
+
+require github.com/swaggo/files/v2 v2.0.2 // indirect
 
 require (
 	github.com/KyleBanks/depth v1.2.1 // indirect

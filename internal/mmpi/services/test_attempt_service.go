@@ -2,6 +2,7 @@ package services
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/Dmitriy-M1319/fittin-backend/internal/mmpi/models"
 )
@@ -22,6 +23,13 @@ func (s *TestAttemptService) AddAnswer(uuid string, answer models.Answer) error 
 	} else {
 		return fmt.Errorf("invalid uuid")
 	}
+}
+
+func (s *TestAttemptService) SetAllAnswers(uuid string, variant int) {
+	for i := 1; i <= 566; i += 1 {
+		s.AddAnswer(uuid, models.Answer{QuestionNumber: i, AnswerVariant: variant})
+	}
+	log.Println(len(s.attempts[uuid].Answers))
 }
 
 func (s *TestAttemptService) CreateNewAttempt(uuid string) {

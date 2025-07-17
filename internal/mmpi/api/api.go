@@ -1,8 +1,6 @@
 package api
 
 import (
-	"context"
-
 	_ "github.com/Dmitriy-M1319/fittin-backend/docs" // важно добавить этот импорт
 	"github.com/Dmitriy-M1319/fittin-backend/internal/mmpi/models"
 	"github.com/Dmitriy-M1319/fittin-backend/internal/mmpi/services"
@@ -30,6 +28,12 @@ type AttemptRequest struct {
 type AddNewAnswerRequest struct {
 	Uuid   string        `json:"uuid" example:"123e4567-e89b-12d3-a456-426614174000"`
 	Answer models.Answer `json:"answer"`
+}
+
+// SetAllAnswersRequest представляет запрос на установку ответов для всех вопросов
+type SetAllAnswersRequest struct {
+	Uuid   string `json:"uuid" example:"123e4567-e89b-12d3-a456-426614174000"`
+	Answer int    `json:"answer"`
 }
 
 type MMPITestApi struct {
@@ -61,6 +65,7 @@ func (a *MMPITestApi) RegisterServices(addr string) {
 	a.app.Post("/attempt", a.HandleCreateNewAttempt)
 	a.app.Post("/answer", a.HandleAddNewAnswer)
 	a.app.Post("/calculate", a.HandleCalculateResult)
+	a.app.Post("/answer-all", a.HandleSetAnswerForAllQuestions)
 	a.app.Listen(addr)
 }
 
@@ -81,6 +86,28 @@ func (a *MMPITestApi) HandleGetQuestions(c *fiber.Ctx) error {
 		})
 	}
 	return c.JSON(questions)
+}
+
+// HandleSetAnswerForAllQuestions godoc
+// @Summary Заполнить все вопросы одним ответом
+// @Description Создает все записи вопросов с одним определенным ответом
+// @Tags attempt
+// @Accept json
+// @Produce json
+// @Param request body SetAllAnswersRequest true "Запрос на создание попытки"
+// @Success 201
+// @Failure 400 {object} map[string]string
+// @Router /answer-all [post]
+func (a *MMPITestApi) HandleSetAnswerForAllQuestions(c *fiber.Ctx) error {
+	var req SetAllAnswersRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Cannot parse JSON",
+		})
+	}
+
+	a.attemptService.SetAllAnswers(req.Uuid, req.Answer)
+	return c.SendStatus(fiber.StatusCreated)
 }
 
 // HandleCreateNewAttempt godoc
@@ -165,12 +192,12 @@ func (a *MMPITestApi) HandleCalculateResult(c *fiber.Ctx) error {
 		})
 	}
 
-	err = a.resultService.AddNewResult(context.Background(), result)
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Can not save test result",
-		})
-	}
+	// err = a.resultService.AddNewResult(context.Background(), result)
+	// if err != nil {
+	// 	return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+	// 		"error": "Can not save test result",
+	// 	})
+	// }
 
 	return c.JSON(result)
 }

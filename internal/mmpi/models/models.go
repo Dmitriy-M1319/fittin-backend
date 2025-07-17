@@ -5,16 +5,9 @@ type Question struct {
 	Text   string `json:"text"`
 }
 
-// Тип ответа
-const (
-	RIGHT = iota
-	WRONG
-	NO_ANSWER
-)
-
 type Answer struct {
 	QuestionNumber int `json:"question_number"`
-	AnswerVariant  int `json:"answer_variant"`
+	AnswerVariant  int `json:"answer_variant"` // 0 - верно, 1 - неверно, 2 - не знаю
 }
 
 type TestAttempt struct {
